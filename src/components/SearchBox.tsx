@@ -63,6 +63,9 @@ import { Cities } from '@/types/common';
 export default function SearchBox(): JSX.Element {
     const [value, setValue] = useState<Dayjs | null>(dayjs(new Date()));
     const [intermediate, setIntermediate] = useState<IntermediateCites[]>([]);
+    const [shouldDisableSubmit, setShouldDisableSubmit] = useState(true);
+
+    // Fetch Cities Data
     const { citiesData, isLoading } = useCitiesData();
 
     /**
@@ -176,7 +179,10 @@ export default function SearchBox(): JSX.Element {
                 variant="outlined"
                 placeholder="e.g. 4"
             />
-            <SubmitButton variant="contained">
+            <SubmitButton
+                variant="contained"
+                disabled={shouldDisableSubmit}
+            >
                 Check your distance!
             </SubmitButton>
         </SearchWrapper>
