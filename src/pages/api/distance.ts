@@ -8,11 +8,11 @@ import { haversineDistance } from "@/utils/haversine-distance";
 import { cities } from "@/constants/cities.constants";
 
 // Types
-import { Distances } from "@/types/common";
+import { Distances, ApiError } from "@/types/common";
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Distances[]>
+  res: NextApiResponse<Distances[]|ApiError>
 ) {
   const { date, passengers, ...restQueries } = req.query;
   const { origin, destination, ...intermediateRoute } = restQueries;
@@ -20,12 +20,14 @@ export default function handler(
 
   const routes = [origin, ...Object.values(intermediateRoute), destination];
 
-  if (origin && destination) {
+  if (!Object.keys(req.query).length) {
+    res.status(400).json({ error: 'Missing Params', code: 400 });
+  } else {
     distances.push({
-      name: origin,
+      name: origin?.toString(),
     });
 
-    routes.forEach((route, i) => {
+    routes.forEach((route, i: number) => {
       const firstCity = cities.find((city) => city.name === routes[i]);
       const secondCity = cities.find((city) => city.name === routes[i + 1]);
 

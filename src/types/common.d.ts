@@ -5,7 +5,12 @@ export interface Cities {
     lng: string;
 }
 
+export interface ApiError {
+    code?: number;
+    error?: string;
+}
+
 export interface Distances {
-    name: string|string[];
+    name?: string;
     distance?: number;
 }

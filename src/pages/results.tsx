@@ -11,6 +11,7 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
+import Alert from '@mui/material/Alert';
 
 // Hooks
 import { useCalculateDistance } from '@/hooks/useCalculateDistance';
@@ -53,8 +54,8 @@ const StepLabelEl = styled(StepLabel)(({ }) => ({
 }));
 
 export default function Results(): JSX.Element {
-    const { distances, isLoading } = useCalculateDistance();
-    const { back } = useRouter();
+    const { distances, isLoading, errors } = useCalculateDistance();
+    const { push } = useRouter();
 
     return (
         <ResultsWrapper>
@@ -64,7 +65,7 @@ export default function Results(): JSX.Element {
                         edge="start"
                         color="inherit"
                         sx={{ mr: 2, cursor: 'pointer' }}
-                        onClick={() => back()}
+                        onClick={() => push('/')}
                     >
                         <ArrowBackOutlinedIcon />
                     </IconButton>
@@ -73,23 +74,30 @@ export default function Results(): JSX.Element {
                     </Typography>
                 </Toolbar>
             </ToolbarWrapper>
-            <StepperContainer>
-                {
-                    isLoading ?
-                        <CircularProgress />
-                        :
-                        <Stepper orientation="vertical">
-                            {distances.map((cityDistance, index) => (
-                                <Step key={`distance-${index}`}>
-                                    <StepLabelEl StepIconComponent={StepperIcon}>
-                                        <span>{cityDistance.name}</span>
-                                        {index !== 0 && <span className="distance">{`${cityDistance.distance?.toLocaleString()} KM`}</span>}
-                                    </StepLabelEl>
-                                </Step>
-                            ))}
-                        </Stepper>
-                }
-            </StepperContainer>
+            {
+                errors.error ?
+                    <StepperContainer>
+                        <Alert severity="error">The origin or destination cities were not found!</Alert>
+                    </StepperContainer>
+                    :
+                    <StepperContainer>
+                        {
+                            isLoading ?
+                                <CircularProgress />
+                                :
+                                <Stepper orientation="vertical">
+                                    {distances.map((cityDistance, index) => (
+                                        <Step key={`distance-${index}`}>
+                                            <StepLabelEl StepIconComponent={StepperIcon}>
+                                                <span>{cityDistance.name}</span>
+                                                {index !== 0 && <span className="distance">{`${cityDistance.distance?.toLocaleString()} KM`}</span>}
+                                            </StepLabelEl>
+                                        </Step>
+                                    ))}
+                                </Stepper>
+                        }
+                    </StepperContainer>
+            }
         </ResultsWrapper>
     )
 }
