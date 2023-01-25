@@ -81,7 +81,7 @@ export default function SearchBox(): JSX.Element {
 
         setTimeout(() => {
             Router.push(`/results?${queryParams}`);
-        }, 250);
+        }, 1000);
     }
 
     // Fetch Cities Data
