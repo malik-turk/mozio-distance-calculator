@@ -1,4 +1,7 @@
+import { useRouter } from 'next/router';
+
 // MUI
+import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from "@mui/material/styles";
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -8,7 +11,9 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
-import { StepConnector } from '@mui/material';
+
+// Hooks
+import { useCalculateDistance } from '@/hooks/useCalculateDistance';
 
 // Styled Components
 const ResultsWrapper = styled('section')(({ }) => ({
@@ -42,14 +47,15 @@ const StepLabelEl = styled(StepLabel)(({ }) => ({
     '.distance': {
         position: 'absolute',
         top: '-50%',
-        left: '-50%'
+        right: '100%',
+        whiteSpace: 'nowrap'
     }
 }));
 
-// Temp
-const steps = ['Dubai', 'Amman', 'Istanbul', 'Ankara', 'Paris'];
-
 export default function Results(): JSX.Element {
+    const { distances, isLoading } = useCalculateDistance();
+    const { back } = useRouter();
+
     return (
         <ResultsWrapper>
             <ToolbarWrapper>
@@ -58,6 +64,7 @@ export default function Results(): JSX.Element {
                         edge="start"
                         color="inherit"
                         sx={{ mr: 2, cursor: 'pointer' }}
+                        onClick={() => back()}
                     >
                         <ArrowBackOutlinedIcon />
                     </IconButton>
@@ -67,16 +74,21 @@ export default function Results(): JSX.Element {
                 </Toolbar>
             </ToolbarWrapper>
             <StepperContainer>
-                <Stepper orientation="vertical">
-                    {steps.map((label, index) => (
-                        <Step key={label}>
-                            <StepLabelEl StepIconComponent={StepperIcon}>
-                                <span>{label}</span>
-                                {index !== 0 && <span className="distance">48KM </span>}
-                            </StepLabelEl>
-                        </Step>
-                    ))}
-                </Stepper>
+                {
+                    isLoading ?
+                        <CircularProgress />
+                        :
+                        <Stepper orientation="vertical">
+                            {distances.map((cityDistance, index) => (
+                                <Step key={`distance-${index}`}>
+                                    <StepLabelEl StepIconComponent={StepperIcon}>
+                                        <span>{cityDistance.name}</span>
+                                        {index !== 0 && <span className="distance">{`${cityDistance.distance?.toLocaleString()} KM`}</span>}
+                                    </StepLabelEl>
+                                </Step>
+                            ))}
+                        </Stepper>
+                }
             </StepperContainer>
         </ResultsWrapper>
     )

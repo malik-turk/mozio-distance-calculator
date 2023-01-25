@@ -4,3 +4,8 @@ export interface Cities {
     lat: string;
     lng: string;
 }
+
+export interface Distances {
+    name: string|string[];
+    distance?: number;
+}

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
+import { useForm } from "react-hook-form";
+import Router from 'next/router';
 
 // MUI
 import { styled } from "@mui/material/styles";
@@ -59,11 +61,21 @@ const textFieldCS = {
 // Types
 import { IntermediateCites } from '@/types/search';
 import { Cities } from '@/types/common';
+import { FormData } from '@/types/search';
 
 export default function SearchBox(): JSX.Element {
     const [value, setValue] = useState<Dayjs | null>(dayjs(new Date()));
     const [intermediate, setIntermediate] = useState<IntermediateCites[]>([]);
-    const [shouldDisableSubmit, setShouldDisableSubmit] = useState(true);
+    const { register, handleSubmit, formState: { errors } } = useForm();
+
+    /**
+     * Submit handler
+     * @param data form data
+     */
+    const onSubmit = (data: FormData) => {
+        const queryParams = Object.keys(data).map(key => `${key}=${encodeURIComponent(data[key])}`).join('&');
+        Router.push(`/results?${queryParams}`);
+    }
 
     // Fetch Cities Data
     const { citiesData, isLoading } = useCitiesData();
@@ -90,101 +102,118 @@ export default function SearchBox(): JSX.Element {
 
     return (
         <SearchWrapper>
-            <Autocomplete
-                sx={textFieldCS}
-                freeSolo
-                disableClearable
-                options={citiesData?.map((city: Cities) => city.name)}
-                loading={isLoading}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="Enter city of origin (city)"
-                        InputProps={{
-                            ...params.InputProps,
-                            type: 'search',
-                        }}
-                    />
-                )}
-            />
-            {
-                intermediate.map((intermediateField, i) => (
-                    <IntermediateField key={intermediateField.id}>
-                        <Autocomplete
-                            sx={textFieldCS}
-                            freeSolo
-                            disableClearable
-                            options={citiesData?.map((city: Cities) => city.name)}
-                            loading
-                            renderInput={(params) => (
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Autocomplete
+                    sx={textFieldCS}
+                    freeSolo
+                    disableClearable
+                    options={citiesData?.map((city: Cities) => city.name)}
+                    loading={isLoading}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            {...register('origin', { required: true })}
+                            error={!!errors.origin}
+                            label="Enter city of origin (city)"
+                            InputProps={{
+                                ...params.InputProps,
+                                type: 'search',
+                            }}
+                        />
+                    )}
+                />
+                {
+                    intermediate.map((intermediateField, i) => (
+                        <IntermediateField key={intermediateField.id}>
+                            <Autocomplete
+                                sx={textFieldCS}
+                                freeSolo
+                                disableClearable
+                                options={citiesData?.map((city: Cities, i: number) => city.name)}
+                                loading
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        {...register(`intermediate-city-${i}`, { required: true })}
+                                        error={!!errors[`intermediate-city-${i}`]}
+                                        label="Enter city of origin (city)"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            type: 'search',
+                                        }}
+                                    />
+                                )}
+                            />
+                            <div onClick={() => handleRemoveIntermediateField(i)}>
+                                <ClearOutlinedIcon />
+                            </div>
+                        </IntermediateField>
+                    ))
+                }
+                <AddIntermediateCityButton
+                    variant="text"
+                    onClick={handleIntermediateClick}
+                >
+                    + Add Intermediate City
+                </AddIntermediateCityButton>
+                <Autocomplete
+                    sx={textFieldCS}
+                    freeSolo
+                    disableClearable
+                    options={citiesData?.map((city: Cities) => city.name)}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            {...register('destination', { required: true })}
+                            error={!!errors.destination}
+                            label="Enter destination (city)"
+                            InputProps={{
+                                ...params.InputProps,
+                                type: 'search',
+                            }}
+                        />
+                    )}
+                />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePickerWrapper>
+                        <DatePicker
+                            className="date-picker"
+                            label="Date of the Trip"
+                            value={value}
+                            minDate={dayjs()}
+                            onChange={(newValue) => {
+                                setValue(newValue);
+                            }}
+                            renderInput={(params) =>
                                 <TextField
                                     {...params}
-                                    label="Enter city of origin (city)"
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        type: 'search',
-                                    }}
+                                    {...register('date', { required: true })}
+                                    error={!!errors.date}
                                 />
-                            )}
+                            }
                         />
-                        <div onClick={() => handleRemoveIntermediateField(i)}>
-                            <ClearOutlinedIcon />
-                        </div>
-                    </IntermediateField>
-                ))
-            }
-            <AddIntermediateCityButton
-                variant="text"
-                onClick={handleIntermediateClick}
-            >
-                + Add Intermediate City
-            </AddIntermediateCityButton>
-            <Autocomplete
-                sx={textFieldCS}
-                freeSolo
-                disableClearable
-                options={citiesData?.map((city: Cities) => city.name)}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="Enter destination (city)"
-                        InputProps={{
-                            ...params.InputProps,
-                            type: 'search',
-                        }}
-                    />
-                )}
-            />
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePickerWrapper>
-                    <DatePicker
-                        className="date-picker"
-                        label="Date of the Trip"
-                        value={value}
-                        minDate={dayjs()}
-                        onChange={(newValue) => {
-                            setValue(newValue);
-                        }}
-                        renderInput={(params) =>
-                            <TextField {...params} />
-                        }
-                    />
-                </DatePickerWrapper>
-            </LocalizationProvider>
-            <TextField
-                type="number"
-                sx={textFieldCS}
-                id="outlined-basic"
-                label="Number of passengers"
-                variant="outlined"
-                placeholder="e.g. 4"
-            />
-            <SubmitButton
-                variant="contained"
-                disabled={shouldDisableSubmit}
-            >
-                Check your distance!
-            </SubmitButton>
+                    </DatePickerWrapper>
+                </LocalizationProvider>
+                <TextField
+                    type="number"
+                    sx={textFieldCS}
+                    id="outlined-basic"
+                    label="Number of passengers"
+                    {...register('passengers', { required: true, min: 1 })}
+                    inputProps={{
+                        min: 1
+                    }}
+                    error={!!errors.passengers}
+                    variant="outlined"
+                    placeholder="e.g. 4"
+                />
+                <SubmitButton
+                    type="submit"
+                    variant="contained"
+                >
+                    Check your distance!
+                </SubmitButton>
+            </form>
         </SearchWrapper>
     )
 }
