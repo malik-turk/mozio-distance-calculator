@@ -5,6 +5,10 @@ import { useRouter } from 'next/router';
 // Types
 import { Distances } from "@/types/common";
 
+/**
+ * calculate distance hook
+ * @returns loading indicator and distances data
+ */
 export const useCalculateDistance = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [distancesData, setDistancesData] = useState<Distances[]>([]);
