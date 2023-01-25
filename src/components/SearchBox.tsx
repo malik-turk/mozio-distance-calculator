@@ -78,7 +78,10 @@ export default function SearchBox(): JSX.Element {
     const onSubmit = (data: FormData) => {
         setshowBackdrop(true);
         const queryParams = Object.keys(data).map(key => `${key}=${encodeURIComponent(data[key])}`).join('&');
-        Router.push(`/results?${queryParams}`);
+
+        setTimeout(() => {
+            Router.push(`/results?${queryParams}`);
+        }, 250);
     }
 
     // Fetch Cities Data
